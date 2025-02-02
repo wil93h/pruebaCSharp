@@ -1,19 +1,23 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "YourStrong@Passw0rd"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
     ports:
-      - "5000:80"
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+  api:
+    build: .
     depends_on:
       - db
     environment:
-      - ConnectionStrings__DefaultConnection=Server=db;Database=Store;User Id=sa;Password=password123;
-
-  db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    environment:
-      SA_PASSWORD: "password123"
-      ACCEPT_EULA: "Y"
+      - ConnectionStrings__DefaultConnection=Server=db;Database=pruebaCSharpDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
     ports:
-      - "1433:1433"
+      - "8080:80"
+
+volumes:
+  sql_data:
