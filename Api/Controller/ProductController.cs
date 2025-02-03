@@ -1,5 +1,5 @@
-using System.Threading.Tasks;
 using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using pruebaCSharp.DataService;
@@ -44,7 +44,6 @@ public class ProductController : ControllerBase
         };
         
         await _productRepository.AddAsync(product);
-        await _productRepository.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
     }
 
@@ -61,7 +60,6 @@ public class ProductController : ControllerBase
         product.UpdatedAt = DateTime.UtcNow;
 
         await _productRepository.UpdateAsync(product);
-        await _productRepository.SaveChangesAsync();
         return NoContent();
     }
 
@@ -72,7 +70,6 @@ public class ProductController : ControllerBase
         if (product == null) return NotFound();
         
         await _productRepository.DeleteAsync(product);
-        await _productRepository.SaveChangesAsync();
         return NoContent();
     }
 

@@ -15,9 +15,10 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
 {
     var connectionString = builder.Configuration.GetSection("ConnectionStrings")["DefaultConnection"];
-    options.UseSqlServer(connectionString!);
+    options.UseNpgsql(connectionString!);  // Cambiado a PostgreSQL
 });
 
+// ... (el resto de la configuración permanece igual)
 // Configuración JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
@@ -48,8 +49,6 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    // Genera y aplica migraciones automáticamente
     dbContext.Database.Migrate();
 }
 

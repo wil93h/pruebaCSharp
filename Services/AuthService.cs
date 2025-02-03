@@ -32,7 +32,6 @@ public class AuthService
         user.SetPassword(password);
 
         await _userRepository.AddAsync(user);
-        await _userRepository.SaveChangesAsync();
         return user;
     }
 

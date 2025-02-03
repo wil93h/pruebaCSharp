@@ -14,51 +14,49 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    // Métodos para manejar el stock
+    public async Task<IEnumerable<Product>> GetAllAsync()
+    {
+        return await _context.Products.FromSqlRaw("SELECT * FROM GetAllProducts()").ToListAsync();
+    }
+
+    public async Task<Product?> GetByIdAsync(int id)
+    {
+        var products = await _context.Products
+            .FromSqlRaw("SELECT * FROM GetProductById({0})", id)
+            .ToListAsync();
+        
+        return products.FirstOrDefault();
+    }
+
+    public async Task AddAsync(Product entity)
+    {
+        await _context.Database.ExecuteSqlRawAsync(
+            "CALL AddProduct({0}, {1}, {2}, {3})",
+            entity.Name, entity.Description, entity.Price, entity.Stock);
+    }
+
+    public async Task UpdateAsync(Product entity)
+    {
+        await _context.Database.ExecuteSqlRawAsync(
+            "CALL UpdateProduct({0}, {1}, {2}, {3}, {4})",
+            entity.Id, entity.Name, entity.Description, entity.Price, entity.Stock);
+    }
+
+    public async Task DeleteAsync(Product entity)
+    {
+        await _context.Database.ExecuteSqlRawAsync(
+            "CALL DeleteProduct({0})", entity.Id);
+    }
+
     public async Task IncrementStock(int productId, int quantity)
     {
-        var product = await _context.Products.FindAsync(productId);
-        if (product != null)
-        {
-            product.Stock += quantity;
-            product.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-        }
+        await _context.Database.ExecuteSqlRawAsync(
+            "CALL IncrementProductStock({0}, {1})", productId, quantity);
     }
 
     public async Task DecrementStock(int productId, int quantity)
     {
-        var product = await _context.Products.FindAsync(productId);
-        if (product != null && product.Stock >= quantity)
-        {
-            product.Stock -= quantity;
-            product.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-        }
+        await _context.Database.ExecuteSqlRawAsync(
+            "CALL DecrementProductStock({0}, {1})", productId, quantity);
     }
-
-    // Implementación de IRepository optimizada
-    public async Task<IEnumerable<Product>> GetAllAsync() => await _context.Products.ToListAsync();
-    
-    public async Task<Product?> GetByIdAsync(int id) => await _context.Products.FindAsync(id);
-    
-    public async Task AddAsync(Product entity)
-    {
-        await _context.Products.AddAsync(entity);
-        await _context.SaveChangesAsync();
-    }
-    
-    public async Task UpdateAsync(Product entity)
-    {
-        _context.Products.Update(entity);
-        await _context.SaveChangesAsync(); // Ahora sí usa await
-    }
-    
-    public async Task DeleteAsync(Product entity)
-    {
-        _context.Products.Remove(entity);
-        await _context.SaveChangesAsync(); // Ahora sí usa await
-    }
-    
-    public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
 }

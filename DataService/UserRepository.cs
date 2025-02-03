@@ -8,8 +8,7 @@ namespace pruebaCSharp.DataService;
 public class UserRepository : IUserRepository
 {
     private readonly ApplicationDbContext _context;
-    
-   
+
     public UserRepository(ApplicationDbContext context)
     {
         _context = context;
@@ -17,30 +16,47 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        return await _context.Users
+            .FromSqlRaw("SELECT * FROM get_user_by_email({0})", email)
+            .FirstOrDefaultAsync();
     }
 
-    public async Task<IEnumerable<User>> GetAllAsync() => await _context.Users.ToListAsync();
-    
-    public async Task<User?> GetByIdAsync(int id) => await _context.Users.FindAsync(id);
-    
+    public async Task<IEnumerable<User>> GetAllAsync()
+    {
+        return await _context.Users
+            .FromSqlRaw("SELECT * FROM get_all_users()")
+            .ToListAsync();
+    }
+
+    public async Task<User?> GetByIdAsync(int id)
+    {
+        return await _context.Users
+            .FromSqlRaw("SELECT * FROM users WHERE id = {0}", id)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task AddAsync(User entity)
     {
-        await _context.Users.AddAsync(entity);
-        await _context.SaveChangesAsync();
+        await _context.Database.ExecuteSqlRawAsync(
+            "SELECT add_user({0}, {1}, {2})",
+            entity.Username, entity.Email, entity.Password
+        );
     }
-    
+
     public async Task UpdateAsync(User entity)
     {
-        _context.Users.Update(entity);
-        await _context.SaveChangesAsync();
+        await _context.Database.ExecuteSqlRawAsync(
+            "SELECT update_user({0}, {1}, {2})",
+            entity.Id, entity.Username, entity.Email
+        );
     }
-    
+
     public async Task DeleteAsync(User entity)
     {
-        _context.Users.Remove(entity);
-        await _context.SaveChangesAsync();
+        await _context.Database.ExecuteSqlRawAsync(
+            "SELECT delete_user({0})",
+            entity.Id
+        );
     }
-    
-    public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+
 }

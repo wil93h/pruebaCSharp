@@ -1,23 +1,32 @@
 services:
   db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: postgres:latest
     environment:
-      SA_PASSWORD: "YourStrong@Passw0rd"
-      ACCEPT_EULA: "Y"
-      MSSQL_PID: "Express"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: YourStrong@Passw0rd
+      POSTGRES_DB: pruebaCSharpDB
     ports:
-      - "1433:1433"
+      - "5432:5432"
     volumes:
-      - sql_data:/var/opt/mssql
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pruebaCSharpDB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   api:
     build: .
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      - ConnectionStrings__DefaultConnection=Server=db;Database=pruebaCSharpDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
+      # - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=pruebaCSharpDB;Username=postgres;Password=YourStrong@Passw0rd
     ports:
-      - "8080:80"
+      - "8080:8080"
+    restart: unless-stopped
 
 volumes:
-  sql_data:
+  postgres_data:

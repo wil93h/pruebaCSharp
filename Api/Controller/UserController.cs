@@ -5,7 +5,8 @@ using pruebaCSharp.Entities;
 using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
-[Route("api/users")]
+[Route("api/[controller]")]
+
 public class UserController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
@@ -17,8 +18,10 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] User user)
     {
+        user.SetPassword(user.Password);
+
         await _userRepository.AddAsync(user); 
-        await _userRepository.SaveChangesAsync();
+
         return Ok(user);
     }
 
@@ -29,8 +32,7 @@ public async Task<IActionResult> Delete(int id)
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null) return NotFound();
         
-        await _userRepository.DeleteAsync(user); // Usa DeleteAsync
-        await _userRepository.SaveChangesAsync();
+        await _userRepository.DeleteAsync(user);
         return NoContent();
     }
 }
