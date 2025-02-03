@@ -26,7 +26,6 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize]
 public async Task<IActionResult> Delete(int id)
     {
         var user = await _userRepository.GetByIdAsync(id);
@@ -34,5 +33,15 @@ public async Task<IActionResult> Delete(int id)
         
         await _userRepository.DeleteAsync(user);
         return NoContent();
+    }
+    [HttpGet("email/{email}")]
+    public async Task<IActionResult> GetByEmail(string email)
+    {
+        var user = await _userRepository.GetByEmailAsync(email);
+
+        if (user == null)
+            return NotFound(); // Si no se encuentra el usuario, se retorna NotFound
+
+        return Ok(user); // Retorna el usuario si se encuentra
     }
 }

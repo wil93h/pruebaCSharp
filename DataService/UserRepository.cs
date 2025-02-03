@@ -14,13 +14,12 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<User?> GetByEmailAsync(string email)
+    public async Task<User?> GetByEmailAsync(string email_param)
     {
         return await _context.Users
-            .FromSqlRaw("SELECT * FROM get_user_by_email({0})", email)
+            .Where(u => u.Email == email_param)
             .FirstOrDefaultAsync();
     }
-
     public async Task<IEnumerable<User>> GetAllAsync()
     {
         return await _context.Users

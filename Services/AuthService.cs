@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using pruebaCSharp.DataService;
 using pruebaCSharp.Entities;
+using System.Text;
 
 namespace pruebaCSharp.Services;
 
 public class AuthService
 {
-    private readonly UserRepository _userRepository;
+    private readonly IUserRepository _userRepository; // ✅ Usa la interfaz
     private readonly IConfiguration _configuration;
-
-    public AuthService(UserRepository userRepository, IConfiguration configuration)
+public AuthService(IUserRepository userRepository, IConfiguration configuration) 
     {
         _userRepository = userRepository;
         _configuration = configuration;
@@ -21,7 +21,9 @@ public class AuthService
 
     public async Task<User?> RegisterUser(string username, string email, string password)
     {
+        Console.WriteLine($"Hola, {email}");
         var existingUser = await _userRepository.GetByEmailAsync(email);
+        Console.WriteLine($"existingUser::::, {existingUser}");
         if (existingUser != null) return null;
 
         var user = new User
@@ -37,11 +39,15 @@ public class AuthService
 
     public async Task<string?> Authenticate(string email, string password)
     {
-        var user = await _userRepository.GetByEmailAsync(email);
-        if (user == null || !user.VerifyPassword(password)) return null;
+        Console.WriteLine($"Hola, {email}");
 
+        var user = await _userRepository.GetByEmailAsync(email);
+    if (user == null || !user.VerifyPassword(password)) return null;
+
+    try
+    {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Convert.FromBase64String(_configuration["Jwt:Key"]!);
+        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
@@ -57,5 +63,12 @@ public class AuthService
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
+    }
+    catch (Exception ex)
+    {
+        // Log the exception or handle it here
+        Console.WriteLine($"Error generating token: {ex.Message}");
+        return null;
+    }
     }
 }

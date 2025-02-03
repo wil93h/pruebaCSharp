@@ -12,6 +12,8 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>().ToTable("users"); 
+        modelBuilder.Entity<Product>().ToTable("products");
         // Configuraciones adicionales para PostgreSQL
         modelBuilder.Entity<Product>()
             .Property(p => p.Price)

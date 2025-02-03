@@ -96,8 +96,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION get_user_by_email(p_email VARCHAR) RETURNS SETOF users AS $$
+CREATE OR REPLACE FUNCTION get_user_by_email(email_param VARCHAR)
+RETURNS TABLE (
+    id INT,
+    username VARCHAR,
+    email VARCHAR,
+    password_hash VARCHAR,
+    created_at TIMESTAMP
+)
+AS
+$$
 BEGIN
-    RETURN QUERY SELECT * FROM users WHERE email = p_email;
+    RETURN QUERY
+    SELECT u.id, u.username, u.email, u.password_hash, u.created_at
+    FROM users u
+    WHERE u.email = email_param;
 END;
 $$ LANGUAGE plpgsql;
